@@ -5,11 +5,20 @@ const Log = require('./log')
 class Receipt extends EthObject{
 
   static get fields(){ return [
-    'postTransactionState',
-    'cumulativeGasUsed',
-    'bloomFilter',
-    'setOfLogs'
+      'postTransactionState',
+      'cumulativeGasUsed',
+      'bloomFilter',
+      'setOfLogs'
   ] }
+
+  get buffer(){
+    let buffer = super.buffer;
+    // https://eips.ethereum.org/EIPS/eip-2718
+    if (this.type !== '0x0' && this.type !== 0){
+      buffer = Buffer.concat([toBuffer(this.type), buffer]);
+    }
+    return buffer;
+  }
 
   constructor(raw = Receipt.NULL){
     super(Receipt.fields, raw)
@@ -22,14 +31,17 @@ class Receipt extends EthObject{
   static fromRpc(rpcResult){
     let logs = []
     for (var i = 0; i < rpcResult.logs.length; i++) {
-       logs.push(Log.fromRpc(rpcResult.logs[i]))
+      logs.push(Log.fromRpc(rpcResult.logs[i]))
     }
-    return new Receipt([
+
+    let receipt = new Receipt([
       toBuffer(rpcResult.status || rpcResult.root),
       toBuffer(rpcResult.cumulativeGasUsed),
       toBuffer(rpcResult.logsBloom),
       logs
     ])
+    receipt.type = rpcResult.type;
+    return receipt
   }
 }
 

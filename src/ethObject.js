@@ -2,6 +2,10 @@ const { encode, toHex } = require('eth-util-lite')
 
 class EthObject extends Array{
 
+  get buffer() {
+    return encode(this.raw)
+  }
+
   constructor(fields, raw){
 //raw array
     super(...raw)
@@ -20,9 +24,6 @@ class EthObject extends Array{
     });
 
 // methods
-    Object.defineProperty(this, 'buffer', {
-      get: function(){ return encode(this.raw) },
-    });
     Object.defineProperty(this, 'hex', {
       get: function(){ return toHex(this.buffer) },
     });
